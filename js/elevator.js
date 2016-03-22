@@ -14,14 +14,44 @@ angular.module("elevator", []).
         }
         return r;
       },
+      isAskable: function(floor) {
+        return this.requestedFloors[0] !== floor.n && this.requestedFloors.length < 4;
+      },
+      isBeforeRequestedFloor: function(floor) {
+        return floor.n > this.floor && floor.n < this.requestedFloor || floor.n < this.floor && floor.n > this.requestedFloor;
+      },
       canOpen: function (n) {
-        // TODO
+        if(this.dir == 0 && this.floor == n) {
+          return true;
+        }
         return false;
       },
-      stepIn: function () { this.occupied = true },
-      stepOut: function () { this.occupied = false },
+      call: function(floor) {
+        if (this.isAskable(floor)) {
+          if (this.isBeforeRequestedFloor(floor)) {
+            this.requestedFloors.unshift(floor.n);
+          } else {
+            this.requestedFloors.unshift(floor.n);
+            this.open = false;
+          }
+        }
+      },
+      stepIn: function () { 
+        if (this.dir === 0 && this.open) 
+          this.occupied = true 
+      },
+      stepOut: function () { 
+        if (this.dir === 0 && this.open) 
+          this.occupied = false 
+      },
+      up: function() { this.dir = 1; this.floor += 1 },
+      down: function() { this.dir = -1; this.floor -= 1 },
+      requestedFloor: function() { return this.requestedFloors[this.requestedFloors.length - 1] },
+      openDoor: function() { if(this.dir == 0) this.open = true },
+
       dir: 0,
       floor: 3,
+      requestedFloors: [],
       open: false,
       occupied: false
     }
@@ -52,7 +82,18 @@ angular.module("elevator", []).
       floor.light = null;
     });
 
+    var checkPosition = function() {
+      if (car.floor > car.requestedFloor()) {
+        car.down();
+      } else if (car.floor < car.requestedFloor()) {
+        car.up();
+      } else {
+        car.dir = 0;
+        car.requestedFloors.pop();
+      }
+      console.log(car);
+    }
     $interval(function () {
-      // TODO: Move the car if necessary
+      checkPosition();
     }, 1000);
   }]);
