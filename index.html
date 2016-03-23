@@ -16,8 +16,8 @@
           <td>{{floor.title}}</th>
           <td ng-class="floor.light">&#x25cf;</td>
           <td>
-            <button type="button" ng-click="car.call(floor)">Call</button>
-            <button type="button" ng-click="car.openDoor()" ng-disabled="!car.canOpen(floor.n)">Open door</button>
+            <button type="button" ng-click="car.call(floor.n)">Call</button>
+            <button type="button" ng-click="car.openDoor()" ng-disabled="car.open || !car.canOpen(floor.n)">Open door</button>
           </td>
         <tr>
       </table>
@@ -37,9 +37,9 @@
 
     <section>
       <h2>User controls</h2>
-      <button type="button" ng-click="car.openDoor()">Open car door</button>
-      <button type="button" ng-click="car.stepIn()">Step in</button>
-      <button type="button" ng-click="car.stepOut()">Step out</button>
+      <button type="button" ng-disabled="!car.canOpen(car.floor)" ng-click="car.openDoor()">Open car door</button>
+      <button type="button" ng-disabled="!car.open || car.occupied" ng-click="car.stepIn()">Step in</button>
+      <button type="button" ng-disabled="!car.open || !car.occupied" ng-click="car.stepOut()">Step out</button>
     </section>
   </body>
 </html>

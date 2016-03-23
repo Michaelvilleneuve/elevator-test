@@ -14,27 +14,35 @@ angular.module("elevator", []).
         }
         return r;
       },
-      isAskable: function(floor) {
-        return this.requestedFloors[0] !== floor.n && this.requestedFloors.length < 4;
-      },
-      isBeforeRequestedFloor: function(floor) {
-        return floor.n > this.floor && floor.n < this.requestedFloor || floor.n < this.floor && floor.n > this.requestedFloor;
+      isAskable: function() {
+        return this.requestedFloors[0] !== this.lastCalledFloor && this.requestedFloors.length < 4;
       },
       canOpen: function (n) {
-        if(this.dir == 0 && this.floor == n) {
+        if (this.dir == 0 && this.floor == n && this.open === false) {
           return true;
         }
         return false;
       },
-      call: function(floor) {
-        if (this.isAskable(floor)) {
-          if (this.isBeforeRequestedFloor(floor)) {
-            this.requestedFloors.unshift(floor.n);
-          } else {
-            this.requestedFloors.unshift(floor.n);
-            this.open = false;
-          }
+      requestedFloor: function() { return this.requestedFloors[this.requestedFloors.length - 1] },
+
+      openDoor: function() { if(this.canOpen(this.floor)) this.open = true },
+      call: function(n) {
+        this.lastCalledFloor = n;
+        if (this.isAskable()) {
+          this.requestedFloors.unshift(this.lastCalledFloor);
+          this.prepareMove();
         }
+      },
+      prepareMove: function() {
+        floors[this.floor].light = "red";
+        floors[this.lastCalledFloor].light = "green";
+        this.open = false;
+      },
+      updateLights: function() {
+        floors.forEach(function (floor,n) {
+          floor.light = "red";
+        });
+        floors[this.lastCalledFloor].light = "green";
       },
       stepIn: function () { 
         if (this.dir === 0 && this.open) 
@@ -44,14 +52,23 @@ angular.module("elevator", []).
         if (this.dir === 0 && this.open) 
           this.occupied = false 
       },
-      up: function() { this.dir = 1; this.floor += 1 },
-      down: function() { this.dir = -1; this.floor -= 1 },
-      requestedFloor: function() { return this.requestedFloors[this.requestedFloors.length - 1] },
-      openDoor: function() { if(this.dir == 0) this.open = true },
+      up: function() { 
+        this.dir = 1; 
+        this.floor += 1;
+        this.updateLights();
+      },
+      down: function() { 
+        this.dir = -1; 
+        this.floor -= 1;
+        this.updateLights();
+      },
+      stop: function() { this.requestedFloors = [] },
+
 
       dir: 0,
       floor: 3,
       requestedFloors: [],
+      lastCalledFloor: null,
       open: false,
       occupied: false
     }
@@ -64,8 +81,10 @@ angular.module("elevator", []).
         return null;
       },
       press: function (n) {
+        car.call(n);
       },
       stop: function () {
+        car.stop();
       }
     }
 
@@ -79,7 +98,7 @@ angular.module("elevator", []).
     floors.forEach(function (floor,n) {
       floor.n = n;
       floor.open = false;
-      floor.light = null;
+      floor.light = (n === car.floor) ? "green" : "";
     });
 
     var checkPosition = function() {
@@ -89,10 +108,14 @@ angular.module("elevator", []).
         car.up();
       } else {
         car.dir = 0;
+        floors.forEach(function (floor,n) {
+          floor.light = "";
+        });
+        floors[car.lastCalledFloor].light = "green";
         car.requestedFloors.pop();
       }
-      console.log(car);
     }
+
     $interval(function () {
       checkPosition();
     }, 1000);
