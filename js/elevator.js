@@ -76,9 +76,8 @@ angular.module("elevator", []).
     // Object representing the control panel in the car
     $scope.panel = {
       btnClass: function (n) {
-        // This can be used to emulate a LED light near or inside the button
-        // to give feedback to the user.
-        return null;
+        if (car.requestedFloor() == n)
+          return "green";
       },
       press: function (n) {
         car.call(n);
@@ -111,7 +110,6 @@ angular.module("elevator", []).
         floors.forEach(function (floor,n) {
           floor.light = "";
         });
-        floors[car.lastCalledFloor].light = "green";
         car.requestedFloors.pop();
       }
     }
